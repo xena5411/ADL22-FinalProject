@@ -70,11 +70,11 @@ def MatchUsersAndCourses(courses, users, bought, subgroups):
 # input
 coursesCsvFilePath = r'hahow/data/courses.csv'
 usersCsvFilePath = r'hahow/data/users.csv'
-usersBuyCoursesCsvFilePath = r'hahow/data/train.csv'
+usersBuyCoursesCsvFilePath = r'hahow/data/val_seen.csv'
 subgroupsDataPath = r'hahow/data/subgroups.csv'
 
 #output
-jsonFilePath = r'hahow/preprocessed/usersAndCourses.json'
+jsonFilePath = r'hahow/preprocessed/valid.json'
 
 
 coursesData = array_to_dict(csv_to_array(coursesCsvFilePath)) # dict

@@ -21,8 +21,9 @@ model = MF(130567, 728, emb_size=100)
 
 with open("./hahow/preprocessed/usersAndCourses.json") as j:
     train_df = json.loads(j.read())
-print(type(train_df))
-train_df, valid_df = train_test_split(train_df, test_size=0.2)
+with open("./hahow/preprocessed/valid.json") as j:
+    valid_df = json.loads(j.read())
+
 user_id_to_id={}
 id = 0
 b_course_ids_to_bid={}

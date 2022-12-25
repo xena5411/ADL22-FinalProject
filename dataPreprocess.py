@@ -36,11 +36,12 @@ def array_to_json(array, jsonFilePath):
 
 def MatchUsersAndCourses(courses, users, bought, subgroups):
     returnList = []
+    include_user = []
     for i in bought:
         newDict = {}
         newDict["user_id"] = i["user_id"]
         newDict["b_course_ids"] = i["course_id"].split(" ")
-
+        include_user.append(i["user_id"])
         for c_id in newDict["b_course_ids"]:
             subGsOfCourse = courses[c_id]["sub_groups"].split(',') # A list of the subgroups of this course
             for subG in subGsOfCourse:
@@ -63,6 +64,23 @@ def MatchUsersAndCourses(courses, users, bought, subgroups):
 
         
         returnList.append(newDict)
+    for j in users:
+        if j not in include_user:
+            newDict = {}
+            newDict["user_id"] = j
+            newDict["b_course_ids"] = []
+            usersLikeSubGs = [i.split("_")[1] for i in (users[j]["interests"].split(',')) if len(i.split("_")) > 1]
+            newDict["l_subgroup_ids"] =  [subgroups[i]["subgroup_id"] for i in usersLikeSubGs if i in subgroups]
+            
+            newDict["l_subgroup_to_all_course_ids"] = []
+            for c_id in courses: 
+                subGsOfCourse = courses[c_id]["sub_groups"].split(',')
+                for likeSubG in usersLikeSubGs:
+                    if likeSubG in subGsOfCourse and c_id not in newDict["l_subgroup_to_all_course_ids"]:
+                        newDict["l_subgroup_to_all_course_ids"].append(c_id)
+            
+            returnList.append(newDict)
+
 
     return returnList
 
@@ -70,11 +88,11 @@ def MatchUsersAndCourses(courses, users, bought, subgroups):
 # input
 coursesCsvFilePath = r'hahow/data/courses.csv'
 usersCsvFilePath = r'hahow/data/users.csv'
-usersBuyCoursesCsvFilePath = r'hahow/data/val_seen.csv'
+usersBuyCoursesCsvFilePath = r'hahow/data/train.csv'
 subgroupsDataPath = r'hahow/data/subgroups.csv'
 
 #output
-jsonFilePath = r'hahow/preprocessed/valid.json'
+jsonFilePath = r'hahow/preprocessed/usersAndCourses.json'
 
 
 coursesData = array_to_dict(csv_to_array(coursesCsvFilePath)) # dict

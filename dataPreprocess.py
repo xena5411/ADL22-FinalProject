@@ -78,6 +78,7 @@ def MatchUsersAndCourses(courses, users, bought, subgroups,groups):
         
 
         returnList.append(newDict)
+        
     for j in users:
         if j not in include_user:
             newDict = {}

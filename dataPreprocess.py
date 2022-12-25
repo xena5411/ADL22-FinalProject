@@ -52,30 +52,31 @@ def MatchUsersAndCourses(courses, users, bought, subgroups):
                     elif subgroups[subG]["subgroup_id"] not in newDict["b_subgroup_ids_of_course"]:
                         newDict["b_subgroup_ids_of_course"].append(subgroups[subG]["subgroup_id"])
 
-        usersLikeSubGs = [i.split("_")[1] for i in (users[i["user_id"]]["interests"].split(',')) if len(i.split("_")) > 1]
-        newDict["l_subgroup_ids"] =  [subgroups[i]["subgroup_id"] for i in usersLikeSubGs if i in subgroups]
+        userLikeSubGs = [i.split("_")[1] for i in (users[i["user_id"]]["interests"].split(',')) if len(i.split("_")) > 1]
+        newDict["l_subgroup_ids"] =  [subgroups[i]["subgroup_id"] for i in userLikeSubGs if i in subgroups]
         
         newDict["l_subgroup_to_all_course_ids"] = []
         for c_id in courses: 
             subGsOfCourse = courses[c_id]["sub_groups"].split(',')
-            for likeSubG in usersLikeSubGs:
+            for likeSubG in userLikeSubGs:
                 if likeSubG in subGsOfCourse and c_id not in newDict["l_subgroup_to_all_course_ids"]:
                     newDict["l_subgroup_to_all_course_ids"].append(c_id)
 
         
         returnList.append(newDict)
+        
     for j in users:
         if j not in include_user:
             newDict = {}
             newDict["user_id"] = j
             newDict["b_course_ids"] = []
-            usersLikeSubGs = [i.split("_")[1] for i in (users[j]["interests"].split(',')) if len(i.split("_")) > 1]
-            newDict["l_subgroup_ids"] =  [subgroups[i]["subgroup_id"] for i in usersLikeSubGs if i in subgroups]
+            userLikeSubGs = [i.split("_")[1] for i in (users[j]["interests"].split(',')) if len(i.split("_")) > 1]
+            newDict["l_subgroup_ids"] =  [subgroups[i]["subgroup_id"] for i in userLikeSubGs if i in subgroups]
             
             newDict["l_subgroup_to_all_course_ids"] = []
             for c_id in courses: 
                 subGsOfCourse = courses[c_id]["sub_groups"].split(',')
-                for likeSubG in usersLikeSubGs:
+                for likeSubG in userLikeSubGs:
                     if likeSubG in subGsOfCourse and c_id not in newDict["l_subgroup_to_all_course_ids"]:
                         newDict["l_subgroup_to_all_course_ids"].append(c_id)
             

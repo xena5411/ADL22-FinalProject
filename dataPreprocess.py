@@ -1,5 +1,6 @@
 import csv 
 import json 
+import random
 
 def csv_to_array(csvFilePath):
     jsonArray = []
@@ -39,6 +40,7 @@ def array_to_json(array, jsonFilePath):
 def MatchUsersAndCourses(courses, users, bought, subgroups,groups):
     returnList = []
     include_user = []
+    course_iter = iter(courses)
     for i in bought:
         newDict = {}
         newDict["user_id"] = i["user_id"]
@@ -63,17 +65,31 @@ def MatchUsersAndCourses(courses, users, bought, subgroups,groups):
                     elif groups[G]["group_id"] not in newDict["b_group_ids_of_course"]:
                         newDict["b_group_ids_of_course"].append(groups[G]["group_id"])
 
-        usersLikeSubGs = [i.split("_")[1] for i in (users[i["user_id"]]["interests"].split(',')) if len(i.split("_")) > 1]
-        newDict["l_subgroup_ids"] =  [subgroups[i]["subgroup_id"] for i in usersLikeSubGs if i in subgroups]
-        usersLikeGs = [i.split("_")[0] for i in (users[i["user_id"]]["interests"].split(',')) if len(i.split("_")) > 1]
-        newDict["l_group_ids"] =  [groups[i]["group_id"] for i in usersLikeGs if i in groups]
+        usersLikeSubGs = [k.split("_")[1] for k in (users[i["user_id"]]["interests"].split(',')) if len(k.split("_")) > 1]
+        newDict["l_subgroup_ids"] =  [subgroups[k]["subgroup_id"] for k in usersLikeSubGs if k in subgroups]
+        usersLikeGs = [z.split("_")[0] for z in (users[i["user_id"]]["interests"].split(',')) if len(z.split("_")) > 1]
+        newDict["l_group_ids"] =[]
+        for j in usersLikeGs:
+            if j in groups:
+                if groups[j]["group_id"] not in newDict["l_group_ids"]:
+                    newDict["l_group_ids"].append(groups[j]["group_id"])
         
         newDict["neg_course_ids"] = []
-        for c_id in courses: 
+        num = 0
+        while True:
+            try:
+                c_id = next(course_iter)
+            except StopIteration:
+                course_iter = iter(courses)
+                break 
             GsOfCourse = courses[c_id]["groups"].split(',')
             for likeG in usersLikeGs:
-                if likeG not in GsOfCourse and c_id not in newDict["neg_course_ids"]:
+                if likeG not in GsOfCourse :
                     newDict["neg_course_ids"].append(c_id)
+                    num +=1
+                    break
+            if num == 10:
+                break
 
         
 
@@ -84,17 +100,34 @@ def MatchUsersAndCourses(courses, users, bought, subgroups,groups):
             newDict = {}
             newDict["user_id"] = j
             newDict["b_course_ids"] = []
-            usersLikeSubGs = [i.split("_")[1] for i in (users[j]["interests"].split(',')) if len(i.split("_")) > 1]
-            newDict["l_subgroup_ids"] =  [subgroups[i]["subgroup_id"] for i in usersLikeSubGs if i in subgroups]
-            usersLikeGs = [i.split("_")[0] for i in (users[i["user_id"]]["interests"].split(',')) if len(i.split("_")) > 1]
-            newDict["l_group_ids"] =  [groups[i]["group_id"] for i in usersLikeGs if i in groups]
-
+            usersLikeSubGs = [k.split("_")[1] for k in (users[i["user_id"]]["interests"].split(',')) if len(k.split("_")) > 1]
+            newDict["l_subgroup_ids"] =  [subgroups[k]["subgroup_id"] for k in usersLikeSubGs if k in subgroups]
+            usersLikeGs = [z.split("_")[0] for z in (users[i["user_id"]]["interests"].split(',')) if len(z.split("_")) > 1]
+            newDict["l_group_ids"] =[]
+            for j in usersLikeGs:
+                if j in groups:
+                    if groups[j]["group_id"] not in newDict["l_group_ids"]:
+                        newDict["l_group_ids"].append(groups[j]["group_id"])
             newDict["neg_course_ids"] = []
-            for c_id in courses: 
+            num = 0
+            
+            while True:
+                try:
+                    c_id = next(course_iter)
+                except StopIteration:
+                    course_iter = iter(courses)
+                    break 
+                
                 GsOfCourse = courses[c_id]["groups"].split(',')
                 for likeG in usersLikeGs:
-                    if likeG not in GsOfCourse and c_id not in newDict["neg_course_ids"]:
+                    if likeG not in GsOfCourse :
                         newDict["neg_course_ids"].append(c_id)
+                        num+=1
+                        if num > 10:
+                            print(num)
+                        break
+                if num ==10:
+                    break
             returnList.append(newDict)
 
 

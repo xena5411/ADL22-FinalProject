@@ -88,13 +88,12 @@ def main(args):
             cid_to_raw_course_id.append(course['course_id'])
     
     # convert the raw user id and course id to uid and cid
-
-    with open('./hahow/preprocessed/usersAndCourses.json') as f:
+    with open('./hahow/preprocessed/PosAndNegScore.json') as f:
         dataset = json.loads(f.read())
     for data in dataset:
         data['user_id'] = raw_user_id_to_uid[data['user_id']]
         data['b_course_ids'] = [raw_course_id_to_cid[raw_b_course_id] for raw_b_course_id in data['b_course_ids']]
-        data['l_subgroup_to_all_course_ids'] = [raw_course_id_to_cid[raw_l_subgroup_to_all_course_id] for raw_l_subgroup_to_all_course_id in data['l_subgroup_to_all_course_ids']]
+        data['neg_course_ids'] = [raw_course_id_to_cid[raw_l_subgroup_to_all_course_id] for raw_l_subgroup_to_all_course_id in data['neg_course_ids']]
 
     # construct a sparse matrix
     m_rows = []
@@ -102,38 +101,39 @@ def main(args):
     m_data = []
     for data in dataset:
         for b_course_id in data['b_course_ids']:
-            # m_cols.append(data['user_id'])
-            # m_rows.append(b_course_id)
-            m_rows.append(data['user_id'])
-            m_cols.append(b_course_id)
+            m_cols.append(data['user_id'])
+            m_rows.append(b_course_id)
+            # m_rows.append(data['user_id'])
+            # m_cols.append(b_course_id)
             m_data.append(args.b_weight)
         if(args.l_weight > 0):
-            for l_course_id in data['l_subgroup_to_all_course_ids']:
-                # m_cols.append(data['user_id'])
-                # m_rows.append(l_course_id)
-                m_rows.append(data['user_id'])
-                m_cols.append(l_course_id)
+            for l_course_id in data['neg_course_ids']:
+                m_cols.append(data['user_id'])
+                m_rows.append(l_course_id)
+                # m_rows.append(data['user_id'])
+                # m_cols.append(l_course_id)
                 m_data.append(args.l_weight)
-    user_course_matrix = csr_matrix((np.array(m_data), (np.array(m_rows), np.array(m_cols))), shape=(len(uid_to_raw_user_id), len(cid_to_raw_course_id)))
+    course_user_matrix = csr_matrix((np.array(m_data), (np.array(m_rows), np.array(m_cols))), shape=(len(cid_to_raw_course_id), len(uid_to_raw_user_id)))
+    # user_course_matrix = csr_matrix((np.array(m_data), (np.array(m_rows), np.array(m_cols))), shape=(len(uid_to_raw_user_id), len(cid_to_raw_course_id)))
 
     # create a model from the input data
     model = get_model(model_name=args.model, factors=args.factors, regularization=args.regularization,alpha=args.alpha, 
         iterations=args.iterations, calculate_training_loss=args.calculate_training_loss, random_state=args.random_state)
 
     # ******* no bm25 now ******* 
-    # # if we're training an ALS based model, weight input for last.fm
-    # # by bm25
-    # if args.model.endswith("als"):
-    #     # lets weight these models by bm25weight.
-    #     logging.debug("weighting matrix by bm25_weight")
-    #     course_user_matrix = bm25_weight(course_user_matrix, K1=100, B=0.8)
+    # if we're training an ALS based model, weight input for last.fm
+    # by bm25
+    if args.model.endswith("als"):
+        # lets weight these models by bm25weight.
+        logging.debug("weighting matrix by bm25_weight")
+        course_user_matrix = bm25_weight(course_user_matrix, K1=100, B=0.8)
 
-    #     # also disable building approximate recommend index
-    #     model.approximate_similar_items = False
+        # also disable building approximate recommend index
+        model.approximate_similar_items = False
 
-    # # this is actually disturbingly expensive:
-    # course_user_matrix = course_user_matrix.tocsr()
-    # user_course_matrix = course_user_matrix.T.tocsr()
+    # this is actually disturbingly expensive:
+    course_user_matrix = course_user_matrix.tocsr()
+    user_course_matrix = course_user_matrix.T.tocsr()
 
     logging.debug("training model %s", args.model)
     start = time.time()
@@ -265,5 +265,5 @@ def parse_args() -> Namespace:
 if __name__ == '__main__':
     args = parse_args()
     print(args)
-    logging.basicConfig()
+    logging.basicConfig(level=logging.DEBUG)
     main(args)

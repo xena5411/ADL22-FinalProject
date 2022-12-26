@@ -1,12 +1,12 @@
 python train_with_implicit.py \
---output ./outputs/pred_test_seen_no_l_f64_N20_bw100.csv \
+--model als \
+--output ./outputs/pred_test_seen_bm25_b10_l1_f64_N50_nf.csv \
 --factors 64 \
 --regularization 0.05 \
 --alpha 1.0 \
---iterations 200 \
+--iterations 500 \
 --calculate_training_loss \
 --random_state 42 \
---N 20 \
---b_weight 100.0 \
---l_weight 0 \
---filter_already_liked_items 
+--N 50 \
+--b_weight 10.0 \
+--l_weight 1

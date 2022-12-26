@@ -46,33 +46,27 @@ def MatchUsersAndCourses(courses, users, bought, subgroups,groups):
         newDict["user_id"] = i["user_id"]
         newDict["b_course_ids"] = i["course_id"].split(" ")
         include_user.append(i["user_id"])
+        newDict["b_subgroup_ids_of_course"] = []
+        newDict["b_group_ids_of_course"] = []
+
         for c_id in newDict["b_course_ids"]:
             subGsOfCourse = courses[c_id]["sub_groups"].split(',') # A list of the subgroups of this course
             GsOfCourse = courses[c_id]["groups"].split(',') # A list of the main groups of this course
             
             for subG in subGsOfCourse:
-                # the subgroup exists or not
-                if subG != '' :
-                    if "b_subgroup_ids_of_course" not in newDict:
-                        newDict["b_subgroup_ids_of_course"] = [subgroups[subG]["subgroup_id"]]
-                    elif subgroups[subG]["subgroup_id"] not in newDict["b_subgroup_ids_of_course"]:
+                if subG != '' and subgroups[subG]["subgroup_id"] not in newDict["b_subgroup_ids_of_course"]:
                         newDict["b_subgroup_ids_of_course"].append(subgroups[subG]["subgroup_id"])
             for G in GsOfCourse:
-                # the group exists or not
-                if G != '' :
-                    if "b_group_ids_of_course" not in newDict:
-                        newDict["b_group_ids_of_course"] = [groups[G]["group_id"]]
-                    elif groups[G]["group_id"] not in newDict["b_group_ids_of_course"]:
+                if G != '' and groups[G]["group_id"] not in newDict["b_group_ids_of_course"]:
                         newDict["b_group_ids_of_course"].append(groups[G]["group_id"])
 
         usersLikeSubGs = [k.split("_")[1] for k in (users[i["user_id"]]["interests"].split(',')) if len(k.split("_")) > 1]
         newDict["l_subgroup_ids"] =  [subgroups[k]["subgroup_id"] for k in usersLikeSubGs if k in subgroups]
         usersLikeGs = [z.split("_")[0] for z in (users[i["user_id"]]["interests"].split(',')) if len(z.split("_")) > 1]
-        newDict["l_group_ids"] =[]
+        newDict["l_group_ids"] = []
         for j in usersLikeGs:
-            if j in groups:
-                if groups[j]["group_id"] not in newDict["l_group_ids"]:
-                    newDict["l_group_ids"].append(groups[j]["group_id"])
+            if j in groups and groups[j]["group_id"] not in newDict["l_group_ids"]:
+                newDict["l_group_ids"].append(groups[j]["group_id"])
         
         newDict["neg_course_ids"] = []
         num = 0
@@ -100,6 +94,8 @@ def MatchUsersAndCourses(courses, users, bought, subgroups,groups):
             newDict = {}
             newDict["user_id"] = j
             newDict["b_course_ids"] = []
+            newDict["b_subgroup_ids_of_course"] = []
+            newDict["b_group_ids_of_course"] = []
             usersLikeSubGs = [k.split("_")[1] for k in (users[i["user_id"]]["interests"].split(',')) if len(k.split("_")) > 1]
             newDict["l_subgroup_ids"] =  [subgroups[k]["subgroup_id"] for k in usersLikeSubGs if k in subgroups]
             usersLikeGs = [z.split("_")[0] for z in (users[i["user_id"]]["interests"].split(',')) if len(z.split("_")) > 1]
@@ -151,6 +147,6 @@ buyData = csv_to_array(usersBuyCoursesCsvFilePath) # list
 subgroupsData = array_to_dict(csv_to_array(subgroupsDataPath)) # dict
 groupsData = array_to_dict(csv_to_array(groupsDataPath)) # dict
 
-processedData = MatchUsersAndCourses(coursesData, usersData, buyData, subgroupsData,groupsData)
+processedData = MatchUsersAndCourses(coursesData, usersData, buyData, subgroupsData, groupsData)
 
 array_to_json(processedData, jsonFilePath)

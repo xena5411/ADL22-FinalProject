@@ -79,42 +79,42 @@ def main(args):
             uid_to_raw_user_id.append(user['user_id'])
 
     # construct a mapping between raw course id and cid
-    raw_course_id_to_cid = {}
-    cid_to_raw_course_id = []
-    with open('./hahow/data/courses.csv', encoding='utf-8') as f:
-        courses = csv.DictReader(f)
-        for i, course in enumerate(courses):
-            raw_course_id_to_cid[course['course_id']] = i
-            cid_to_raw_course_id.append(course['course_id'])
+    raw_subgroup_id_to_sgid = {}
+    sgid_to_raw_subgroup_id = []
+    with open('./hahow/data/subgroups.csv', encoding='utf-8') as f:
+        subgroups = csv.DictReader(f)
+        for i, subgroup in enumerate(subgroups):
+            raw_subgroup_id_to_sgid[subgroup['subgroup_id']] = i
+            sgid_to_raw_subgroup_id.append(subgroup['subgroup_id'])
     
     # convert the raw user id and course id to uid and cid
-    with open('./hahow/preprocessed/PosAndNegScore.json') as f:
+    with open(args.trainfile) as f:
         dataset = json.loads(f.read())
     for data in dataset:
         data['user_id'] = raw_user_id_to_uid[data['user_id']]
-        data['b_course_ids'] = [raw_course_id_to_cid[raw_b_course_id] for raw_b_course_id in data['b_course_ids']]
-        data['neg_course_ids'] = [raw_course_id_to_cid[raw_l_subgroup_to_all_course_id] for raw_l_subgroup_to_all_course_id in data['neg_course_ids']]
+        data['b_subgroup_ids_of_course'] = [raw_subgroup_id_to_sgid[raw_b_subgroup_id] for raw_b_subgroup_id in data['b_subgroup_ids_of_course']]
+        data['l_subgroup_ids'] = [raw_subgroup_id_to_sgid[raw_l_subgroup_id] for raw_l_subgroup_id in data['l_subgroup_ids']]
 
     # construct a sparse matrix
     m_rows = []
     m_cols = []
     m_data = []
     for data in dataset:
-        for b_course_id in data['b_course_ids']:
+        for b_sgid in data['b_subgroup_ids_of_course']:
             # m_cols.append(data['user_id'])
             # m_rows.append(b_course_id)
             m_rows.append(data['user_id'])
-            m_cols.append(b_course_id)
+            m_cols.append(b_sgid)
             m_data.append(args.b_weight)
         if(args.l_weight > 0):
-            for l_course_id in data['neg_course_ids']:
+            for l_sgid in data['l_subgroup_ids']:
                 # m_cols.append(data['user_id'])
                 # m_rows.append(l_course_id)
                 m_rows.append(data['user_id'])
-                m_cols.append(l_course_id)
+                m_cols.append(l_sgid)
                 m_data.append(args.l_weight)
-    # course_user_matrix = csr_matrix((np.array(m_data), (np.array(m_rows), np.array(m_cols))), shape=(len(cid_to_raw_course_id), len(uid_to_raw_user_id)))
-    user_course_matrix = csr_matrix((np.array(m_data), (np.array(m_rows), np.array(m_cols))), shape=(len(uid_to_raw_user_id), len(cid_to_raw_course_id)))
+    # course_user_matrix = csr_matrix((np.array(m_data), (np.array(m_rows), np.array(m_cols))), shape=(len(cid_to_raw_course_id), len(sgid_to_raw_subgroup_id)))
+    user_subgroup_matrix = csr_matrix((np.array(m_data), (np.array(m_rows), np.array(m_cols))), shape=(len(uid_to_raw_user_id), len(sgid_to_raw_subgroup_id)))
 
     # create a model from the input data
     model = get_model(model_name=args.model, factors=args.factors, regularization=args.regularization,alpha=args.alpha, 
@@ -133,17 +133,17 @@ def main(args):
 
     # # this is actually disturbingly expensive:
     # course_user_matrix = course_user_matrix.tocsr()
-    # user_course_matrix = course_user_matrix.T.tocsr()
+    # user_subgroup_matrix = course_user_matrix.T.tocsr()
 
     logging.debug("training model %s", args.model)
     start = time.time()
-    model.fit(user_course_matrix)
+    model.fit(user_subgroup_matrix)
     logging.debug("trained model '%s' in %0.2fs", args.model, time.time() - start)
 
 
     # predict only users in test file
     to_generate = []
-    with open('./hahow/data/test_seen.csv', encoding='utf-8') as f:
+    with open(args.testfile, encoding='utf-8') as f:
         testdata = csv.DictReader(f)
         for testdatum in testdata:
             to_generate.append(raw_user_id_to_uid[testdatum['user_id']])
@@ -151,19 +151,19 @@ def main(args):
     start = time.time()
     with tqdm.tqdm(total=len(to_generate)) as progress:
         with codecs.open(args.outputfile, "w", "utf8") as o:
-            o.write('user_id,course_id\n')
+            o.write('user_id,subgroup\n')
             for idx in to_generate:
                 ids, scores = model.recommend(
-                    idx, user_course_matrix[idx], filter_already_liked_items=args.filter_already_liked_items, 
+                    idx, user_subgroup_matrix[idx], filter_already_liked_items=args.filter_already_liked_items, 
                     N=args.N, recalculate_user=args.recalculate_user,
                 )
                 user_id = uid_to_raw_user_id[idx]
-                # rec_courses = [cid_to_raw_course_id[rec_cid] + '**' + str(score) for rec_cid, score in zip(ids, scores)]
+                # rec_subgroups = [sgid_to_raw_subgroup_id[rec_sgid] + '**' + str(score)  for rec_sgid, score in zip(ids, scores)]
                 if args.thresh:
-                    rec_courses = [cid_to_raw_course_id[rec_cid] if score > args.thresh else '' for rec_cid, score in zip(ids, scores)]
+                    rec_subgroups = [sgid_to_raw_subgroup_id[rec_sgid] if score > args.thresh else '' for rec_sgid, score in zip(ids, scores)]
                 else:
-                    rec_courses = [cid_to_raw_course_id[rec_cid] for rec_cid in ids]
-                o.write(f"{user_id},{' '.join(rec_courses)}\n")
+                    rec_subgroups = [sgid_to_raw_subgroup_id[rec_sgid] for rec_sgid in ids]
+                o.write(f"{user_id},{' '.join(rec_subgroups)}\n")
                 progress.update(1)
     logging.debug("generated recommendations in %0.2fs", time.time() - start)
 
@@ -177,7 +177,7 @@ def main(args):
     #         for startidx in range(0, len(to_generate), batch_size):
     #             batch = to_generate[startidx : startidx + batch_size]
     #             ids, scores = model.recommend(
-    #                 batch, user_course_matrix[batch], filter_already_liked_items=args.filter_already_liked_items, 
+    #                 batch, user_subgroup_matrix[batch], filter_already_liked_items=args.filter_already_liked_items, 
     #                 N=args.N, recalculate_user=args.recalculate_user,
     #             )
     #             for i, uid in enumerate(batch):
@@ -197,6 +197,16 @@ def parse_args() -> Namespace:
         default="similar-artists.tsv",
         dest="outputfile",
         help="output file name",
+    )
+    parser.add_argument(
+        "--testfile",
+        type=str,
+        help="test file name",
+    )
+    parser.add_argument(
+        "--trainfile",
+        type=str,
+        help="train file name",
     )
     parser.add_argument(
         "--model",

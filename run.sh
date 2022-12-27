@@ -1,12 +1,13 @@
 python train_with_implicit.py \
 --model als \
---output ./outputs/pred_test_seen_bm25_b10_l1_f64_N50_nf.csv \
+--output ./outputs/pred_test_seen_b10_nl_f64_N50_t02.csv \
 --factors 64 \
 --regularization 0.05 \
 --alpha 1.0 \
---iterations 500 \
+--iterations 300 \
 --calculate_training_loss \
 --random_state 42 \
 --N 50 \
 --b_weight 10.0 \
---l_weight 1
+--l_weight 0 \
+--thresh 0.2 \

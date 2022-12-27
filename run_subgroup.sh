@@ -1,4 +1,4 @@
-predFilePath="./outputs/pred_test_unseen_subgroup.csv"
+predFilePath="./outputs/bm25/pred_val_unseen_subgroup_Kone120_B01_l1.csv"
 valFile="./hahow/data/val_unseen_group.csv"
 
 python train_with_implicit.py \
@@ -10,17 +10,20 @@ python train_with_implicit.py \
 --lkey l_subgroup_ids \
 --testfile $valFile \
 --trainfile ./hahow/preprocessed/PosAndNegScore.json \
---model als \
+--model bm25 \
 --output $predFilePath \
---factors 32 \
---regularization 0.05 \
+--factors 100 \
+--regularization 0.01 \
 --alpha 1.0 \
---iterations 300 \
+--iterations 100 \
+--learning_rate 0.02 \
+--K1 120 \
+--B 0.1 \
 --calculate_training_loss \
 --random_state 42 \
 --N 50 \
---b_weight 10.0 \
---l_weight 10 \
+--b_weight 10 \
+--l_weight 0 \
 
 python matrix.py \
 --predFilePath $predFilePath \

@@ -1,5 +1,5 @@
-predFilePath="./outputs/pred_test_seen_course.csv"
-valFile="./hahow/data/val_seen.csv"
+predFilePath="./outputs/als/pred_val_unseen_course_f64_r005_i300_b10_l1.csv"
+valFile="./hahow/data/val_unseen.csv"
 
 python train_with_implicit.py \
 --userfile ./hahow/data/users.csv \
@@ -16,11 +16,13 @@ python train_with_implicit.py \
 --regularization 0.05 \
 --alpha 1.0 \
 --iterations 300 \
+--K1 120 \
+--B 0.1 \
 --calculate_training_loss \
 --random_state 42 \
 --N 50 \
 --b_weight 10.0 \
---l_weight 0 \
+--l_weight 1 \
 
 python matrix.py \
 --predFilePath $predFilePath \

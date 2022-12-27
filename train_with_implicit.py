@@ -59,11 +59,13 @@ def get_model(args):
         params = {"dtype": np.float32, "use_gpu": True, "factors": args.factors, "regularization": args.regularization,"alpha": args.alpha, 
         "iterations": args.iterations, "calculate_training_loss": args.calculate_training_loss, "random_state": args.random_state}
     elif model_name == "bm25":
-        params = {"K1": 100, "B": 0.5}
+        params = {"K1": args.K1, "B": args.B}
     elif model_name == "bpr":
-        params = {"factors": 63}
+        params = {"dtype": np.float32, "factors": args.factors, "iterations": args.iterations, "regularization": args.regularization, 
+            "random_state": args.random_state, "learning_rate": args.learning_rate}
     elif model_name == "lmf":
-        params = {"factors": 30, "iterations": 40, "regularization": 1.5}
+        params = {"dtype": np.float32, "factors": args.factors, "iterations": args.iterations, "regularization": args.regularization, 
+            "random_state": args.random_state, "learning_rate": args.learning_rate}
     else:
         params = {}
 
@@ -102,12 +104,13 @@ def main(args):
     m_cols = []
     m_data = []
     for data in dataset:
-        for b_course_id in data[args.bkey]:
-            # m_cols.append(data['user_id'])
-            # m_rows.append(b_course_id)
-            m_rows.append(data['user_id'])
-            m_cols.append(b_course_id)
-            m_data.append(args.b_weight)
+        if(args.b_weight > 0):
+            for b_course_id in data[args.bkey]:
+                # m_cols.append(data['user_id'])
+                # m_rows.append(b_course_id)
+                m_rows.append(data['user_id'])
+                m_cols.append(b_course_id)
+                m_data.append(args.b_weight)
         if(args.l_weight > 0):
             for l_course_id in data[args.lkey]:
                 # m_cols.append(data['user_id'])
@@ -237,6 +240,21 @@ def parse_args() -> Namespace:
         "--regularization",
         type=float,
         help="The regularization factor to use",
+    )
+    parser.add_argument(
+        "--learning_rate",
+        type=float,
+        help="The learning rate to use",
+    )
+    parser.add_argument(
+        "--K1",
+        type=float,
+        help="K1 for bm25",
+    )
+    parser.add_argument(
+        "--B",
+        type=float,
+        help="B for bm25",
     )
     parser.add_argument(
         "--alpha",

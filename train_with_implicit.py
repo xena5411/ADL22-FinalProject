@@ -72,7 +72,7 @@ def main(args):
     # construct a mapping between raw user id and uid
     raw_user_id_to_uid = {}
     uid_to_raw_user_id = []
-    with open('./hahow/data/users.csv', encoding='utf-8') as f:
+    with open(args.userfile, encoding='utf-8') as f:
         users = csv.DictReader(f)
         for i, user in enumerate(users):
             raw_user_id_to_uid[user['user_id']] = i
@@ -81,33 +81,33 @@ def main(args):
     # construct a mapping between raw course id and cid
     raw_course_id_to_cid = {}
     cid_to_raw_course_id = []
-    with open('./hahow/data/courses.csv', encoding='utf-8') as f:
+    with open(args.coursefile, encoding='utf-8') as f:
         courses = csv.DictReader(f)
         for i, course in enumerate(courses):
-            raw_course_id_to_cid[course['course_id']] = i
-            cid_to_raw_course_id.append(course['course_id'])
+            raw_course_id_to_cid[course[args.coursekey]] = i
+            cid_to_raw_course_id.append(course[args.coursekey])
     
     # convert the raw user id and course id to uid and cid
-    with open('./hahow/preprocessed/PosAndNegScore.json') as f:
+    with open(args.trainfile) as f:
         dataset = json.loads(f.read())
     for data in dataset:
         data['user_id'] = raw_user_id_to_uid[data['user_id']]
-        data['b_course_ids'] = [raw_course_id_to_cid[raw_b_course_id] for raw_b_course_id in data['b_course_ids']]
-        data['neg_course_ids'] = [raw_course_id_to_cid[raw_l_subgroup_to_all_course_id] for raw_l_subgroup_to_all_course_id in data['neg_course_ids']]
+        data[args.bkey] = [raw_course_id_to_cid[raw_b_course_id] for raw_b_course_id in data[args.bkey]]
+        data[args.lkey] = [raw_course_id_to_cid[raw_l_subgroup_to_all_course_id] for raw_l_subgroup_to_all_course_id in data[args.lkey]]
 
     # construct a sparse matrix
     m_rows = []
     m_cols = []
     m_data = []
     for data in dataset:
-        for b_course_id in data['b_course_ids']:
+        for b_course_id in data[args.bkey]:
             # m_cols.append(data['user_id'])
             # m_rows.append(b_course_id)
             m_rows.append(data['user_id'])
             m_cols.append(b_course_id)
             m_data.append(args.b_weight)
         if(args.l_weight > 0):
-            for l_course_id in data['neg_course_ids']:
+            for l_course_id in data[args.lkey]:
                 # m_cols.append(data['user_id'])
                 # m_rows.append(l_course_id)
                 m_rows.append(data['user_id'])
@@ -143,7 +143,7 @@ def main(args):
 
     # predict only users in test file
     to_generate = []
-    with open('./hahow/data/test_seen.csv', encoding='utf-8') as f:
+    with open(args.testfile, encoding='utf-8') as f:
         testdata = csv.DictReader(f)
         for testdatum in testdata:
             to_generate.append(raw_user_id_to_uid[testdatum['user_id']])
@@ -151,7 +151,7 @@ def main(args):
     start = time.time()
     with tqdm.tqdm(total=len(to_generate)) as progress:
         with codecs.open(args.outputfile, "w", "utf8") as o:
-            o.write('user_id,course_id\n')
+            o.write(f'user_id,{args.outputkey}\n')
             for idx in to_generate:
                 ids, scores = model.recommend(
                     idx, user_course_matrix[idx], filter_already_liked_items=args.filter_already_liked_items, 
@@ -167,28 +167,6 @@ def main(args):
                 progress.update(1)
     logging.debug("generated recommendations in %0.2fs", time.time() - start)
 
-    # # generate recommendations for each user and write out to a file
-    # start = time.time()
-    # with tqdm.tqdm(total=len(uid_to_raw_user_id)) as progress:
-    #     with codecs.open(args.outputfile, "w", "utf8") as o:
-    #         o.write('user_id,course_id\n')
-    #         batch_size = 1000
-    #         to_generate = np.arange(len(uid_to_raw_user_id))
-    #         for startidx in range(0, len(to_generate), batch_size):
-    #             batch = to_generate[startidx : startidx + batch_size]
-    #             ids, scores = model.recommend(
-    #                 batch, user_course_matrix[batch], filter_already_liked_items=args.filter_already_liked_items, 
-    #                 N=args.N, recalculate_user=args.recalculate_user,
-    #             )
-    #             for i, uid in enumerate(batch):
-    #                 user_id = uid_to_raw_user_id[uid]
-    #                 rec_courses = [cid_to_raw_course_id[rec_cid] for rec_cid in ids[i]]
-    #                 o.write(f"{user_id},{' '.join(rec_courses)}\n")
-    #                 # for rec_cid, score in zip(ids[i], scores[i]):
-    #                 #     o.write(f"{user_id}\t{cid_to_raw_course_id[rec_cid]}\t{score}\n")
-    #             progress.update(batch_size)
-    # logging.debug("generated recommendations in %0.2fs", time.time() - start)
-
 def parse_args() -> Namespace:
     parser = ArgumentParser()
     parser.add_argument(
@@ -197,6 +175,46 @@ def parse_args() -> Namespace:
         default="similar-artists.tsv",
         dest="outputfile",
         help="output file name",
+    )
+    parser.add_argument(
+        "--userfile",
+        type=str,
+        help="user file name",
+    )
+    parser.add_argument(
+        "--coursefile",
+        type=str,
+        help="course file name",
+    )
+    parser.add_argument(
+        "--coursekey",
+        type=str,
+        help="course key name",
+    )
+    parser.add_argument(
+        "--outputkey",
+        type=str,
+        help="output key name",
+    )
+    parser.add_argument(
+        "--bkey",
+        type=str,
+        help="bought course key name",
+    )
+    parser.add_argument(
+        "--lkey",
+        type=str,
+        help="liked course key name",
+    )
+    parser.add_argument(
+        "--testfile",
+        type=str,
+        help="test file name",
+    )
+    parser.add_argument(
+        "--trainfile",
+        type=str,
+        help="train file name",
     )
     parser.add_argument(
         "--model",

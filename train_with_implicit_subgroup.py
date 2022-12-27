@@ -72,7 +72,7 @@ def main(args):
     # construct a mapping between raw user id and uid
     raw_user_id_to_uid = {}
     uid_to_raw_user_id = []
-    with open('./hahow/data/users.csv', encoding='utf-8') as f:
+    with open(args.userfile, encoding='utf-8') as f:
         users = csv.DictReader(f)
         for i, user in enumerate(users):
             raw_user_id_to_uid[user['user_id']] = i
@@ -81,11 +81,11 @@ def main(args):
     # construct a mapping between raw course id and cid
     raw_subgroup_id_to_sgid = {}
     sgid_to_raw_subgroup_id = []
-    with open('./hahow/data/subgroups.csv', encoding='utf-8') as f:
+    with open(args.coursefile, encoding='utf-8') as f:
         subgroups = csv.DictReader(f)
         for i, subgroup in enumerate(subgroups):
-            raw_subgroup_id_to_sgid[subgroup['subgroup_id']] = i
-            sgid_to_raw_subgroup_id.append(subgroup['subgroup_id'])
+            raw_subgroup_id_to_sgid[subgroup[args.coursekey]] = i
+            sgid_to_raw_subgroup_id.append(subgroup[args.coursekey])
     
     # convert the raw user id and course id to uid and cid
     with open(args.trainfile) as f:
@@ -115,7 +115,8 @@ def main(args):
                 m_data.append(args.l_weight)
     # course_user_matrix = csr_matrix((np.array(m_data), (np.array(m_rows), np.array(m_cols))), shape=(len(cid_to_raw_course_id), len(sgid_to_raw_subgroup_id)))
     user_subgroup_matrix = csr_matrix((np.array(m_data), (np.array(m_rows), np.array(m_cols))), shape=(len(uid_to_raw_user_id), len(sgid_to_raw_subgroup_id)))
-
+    # print(user_subgroup_matrix[raw_user_id_to_uid['5f432175a32a53813a24e1a5']])
+    # exit()
     # create a model from the input data
     model = get_model(model_name=args.model, factors=args.factors, regularization=args.regularization,alpha=args.alpha, 
         iterations=args.iterations, calculate_training_loss=args.calculate_training_loss, random_state=args.random_state)
@@ -158,11 +159,11 @@ def main(args):
                     N=args.N, recalculate_user=args.recalculate_user,
                 )
                 user_id = uid_to_raw_user_id[idx]
-                # rec_subgroups = [sgid_to_raw_subgroup_id[rec_sgid] + '**' + str(score)  for rec_sgid, score in zip(ids, scores)]
-                if args.thresh:
-                    rec_subgroups = [sgid_to_raw_subgroup_id[rec_sgid] if score > args.thresh else '' for rec_sgid, score in zip(ids, scores)]
-                else:
-                    rec_subgroups = [sgid_to_raw_subgroup_id[rec_sgid] for rec_sgid in ids]
+                rec_subgroups = [sgid_to_raw_subgroup_id[rec_sgid] + '**' + str(score)  for rec_sgid, score in zip(ids, scores)]
+                # if args.thresh:
+                #     rec_subgroups = [sgid_to_raw_subgroup_id[rec_sgid] if score > args.thresh else '' for rec_sgid, score in zip(ids, scores)]
+                # else:
+                #     rec_subgroups = [sgid_to_raw_subgroup_id[rec_sgid] for rec_sgid in ids]
                 o.write(f"{user_id},{' '.join(rec_subgroups)}\n")
                 progress.update(1)
     logging.debug("generated recommendations in %0.2fs", time.time() - start)
@@ -197,6 +198,26 @@ def parse_args() -> Namespace:
         default="similar-artists.tsv",
         dest="outputfile",
         help="output file name",
+    )
+    parser.add_argument(
+        "--userfile",
+        type=str,
+        help="user file name",
+    )
+    parser.add_argument(
+        "--coursefile",
+        type=str,
+        help="course file name",
+    )
+    parser.add_argument(
+        "--coursekey",
+        type=str,
+        help="course key name",
+    )
+    parser.add_argument(
+        "--outputkey",
+        type=str,
+        help="course id key name",
     )
     parser.add_argument(
         "--testfile",

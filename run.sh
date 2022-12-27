@@ -1,3 +1,6 @@
+predFilePath="./outputs/pred_test_seen_course.csv"
+valFile="./hahow/data/val_seen.csv"
+
 python train_with_implicit.py \
 --userfile ./hahow/data/users.csv \
 --coursefile ./hahow/data/courses.csv \
@@ -5,10 +8,10 @@ python train_with_implicit.py \
 --outputkey course_id \
 --bkey b_course_ids \
 --lkey l_course_ids \
---testfile ./hahow/data/test_seen.csv \
+--testfile $valFile \
 --trainfile ./hahow/preprocessed/PosAndNegScore.json \
 --model als \
---output ./outputs/test.csv \
+--output $predFilePath \
 --factors 64 \
 --regularization 0.05 \
 --alpha 1.0 \
@@ -18,6 +21,11 @@ python train_with_implicit.py \
 --N 50 \
 --b_weight 10.0 \
 --l_weight 0 \
+
+python matrix.py \
+--predFilePath $predFilePath \
+--valFilePath $valFile \
+--type "course_id" \
 
 # --filter_already_liked_items \
 # --thresh 0.2 \

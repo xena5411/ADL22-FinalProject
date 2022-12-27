@@ -47,7 +47,8 @@ MODELS = {
     "bm25": BM25Recommender,
 }
 
-def get_model(model_name, **param):
+def get_model(args):
+    model_name = args.model
     print(f"getting model {model_name}")
     model_class = MODELS.get(model_name)
     if not model_class:
@@ -55,7 +56,8 @@ def get_model(model_name, **param):
 
     # some default params
     if model_name.endswith("als"):
-        params = {"factors": 128, "dtype": np.float32, "use_gpu": True, **param}
+        params = {"dtype": np.float32, "use_gpu": True, "factors": args.factors, "regularization": args.regularization,"alpha": args.alpha, 
+        "iterations": args.iterations, "calculate_training_loss": args.calculate_training_loss, "random_state": args.random_state}
     elif model_name == "bm25":
         params = {"K1": 100, "B": 0.5}
     elif model_name == "bpr":
@@ -117,8 +119,7 @@ def main(args):
     user_course_matrix = csr_matrix((np.array(m_data), (np.array(m_rows), np.array(m_cols))), shape=(len(uid_to_raw_user_id), len(cid_to_raw_course_id)))
 
     # create a model from the input data
-    model = get_model(model_name=args.model, factors=args.factors, regularization=args.regularization,alpha=args.alpha, 
-        iterations=args.iterations, calculate_training_loss=args.calculate_training_loss, random_state=args.random_state)
+    model = get_model(args)
 
     # ******* no bm25 now ******* 
     # # if we're training an ALS based model, weight input for last.fm

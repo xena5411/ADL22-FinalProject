@@ -68,6 +68,8 @@ def MatchUsersAndCourses(courses, users, bought, subgroups,groups):
             if j in groups and groups[j]["group_id"] not in newDict["l_group_ids"]:
                 newDict["l_group_ids"].append(groups[j]["group_id"])
         
+
+        newDict["l_course_ids"] = []
         newDict["neg_course_ids"] = []
         num = 0
         while True:
@@ -84,8 +86,18 @@ def MatchUsersAndCourses(courses, users, bought, subgroups,groups):
                     break
             if num == 10:
                 break
+        while True:
+            try:
+                c_id = next(course_iter)
+            except StopIteration:
+                course_iter = iter(courses)
+                break 
+            subGsOfCourse = courses[c_id]["sub_groups"].split(',')
+            for likeSubG in usersLikeSubGs:
+                if likeSubG not in subGsOfCourse :
+                    newDict["l_course_ids"].append(c_id)
+                    break
 
-        
 
         returnList.append(newDict)
         
@@ -104,6 +116,7 @@ def MatchUsersAndCourses(courses, users, bought, subgroups,groups):
                 if j in groups:
                     if groups[j]["group_id"] not in newDict["l_group_ids"]:
                         newDict["l_group_ids"].append(groups[j]["group_id"])
+            newDict["l_course_ids"] = []
             newDict["neg_course_ids"] = []
             num = 0
             
@@ -122,9 +135,24 @@ def MatchUsersAndCourses(courses, users, bought, subgroups,groups):
                         if num > 10:
                             print(num)
                         break
-                if num ==10:
+                if num == 10:
                     break
+            while True:
+                try:
+                    c_id = next(course_iter)
+                except StopIteration:
+                    course_iter = iter(courses)
+                    break 
+                subGsOfCourse = courses[c_id]["sub_groups"].split(',')
+                for likeSubG in usersLikeSubGs:
+                    if likeSubG not in subGsOfCourse :
+                        newDict["l_course_ids"].append(c_id)
+                        break
+
+            
             returnList.append(newDict)
+
+
 
 
     return returnList

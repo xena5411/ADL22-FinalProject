@@ -46,19 +46,19 @@ def MatchUsersAndCourses(courses, users, bought, subgroups,groups):
         newDict["user_id"] = i["user_id"]
         newDict["b_course_ids"] = i["course_id"].split(" ")
         include_user.append(i["user_id"])
-        newDict["b_subgroup_ids_of_course"] = []
-        newDict["b_group_ids_of_course"] = []
+        newDict["b_subgroup_ids"] = []
+        newDict["b_group_ids"] = []
 
         for c_id in newDict["b_course_ids"]:
             subGsOfCourse = courses[c_id]["sub_groups"].split(',') # A list of the subgroups of this course
             GsOfCourse = courses[c_id]["groups"].split(',') # A list of the main groups of this course
             
             for subG in subGsOfCourse:
-                if subG != '' and subgroups[subG]["subgroup_id"] not in newDict["b_subgroup_ids_of_course"]:
-                        newDict["b_subgroup_ids_of_course"].append(subgroups[subG]["subgroup_id"])
+                if subG != '' and subgroups[subG]["subgroup_id"] not in newDict["b_subgroup_ids"]:
+                        newDict["b_subgroup_ids"].append(subgroups[subG]["subgroup_id"])
             for G in GsOfCourse:
-                if G != '' and groups[G]["group_id"] not in newDict["b_group_ids_of_course"]:
-                        newDict["b_group_ids_of_course"].append(groups[G]["group_id"])
+                if G != '' and groups[G]["group_id"] not in newDict["b_group_ids"]:
+                        newDict["b_group_ids"].append(groups[G]["group_id"])
 
         usersLikeSubGs = [k.split("_")[1] for k in (users[i["user_id"]]["interests"].split(',')) if len(k.split("_")) > 1]
         newDict["l_subgroup_ids"] =  [subgroups[k]["subgroup_id"] for k in usersLikeSubGs if k in subgroups]
@@ -89,16 +89,16 @@ def MatchUsersAndCourses(courses, users, bought, subgroups,groups):
 
         returnList.append(newDict)
         
-    for j in users:
-        if j not in include_user:
+    for i in users:
+        if i not in include_user:
             newDict = {}
-            newDict["user_id"] = j
+            newDict["user_id"] = i
             newDict["b_course_ids"] = []
-            newDict["b_subgroup_ids_of_course"] = []
-            newDict["b_group_ids_of_course"] = []
-            usersLikeSubGs = [k.split("_")[1] for k in (users[i["user_id"]]["interests"].split(',')) if len(k.split("_")) > 1]
+            newDict["b_subgroup_ids"] = []
+            newDict["b_group_ids"] = []
+            usersLikeSubGs = [k.split("_")[1] for k in (users[i]["interests"].split(',')) if len(k.split("_")) > 1]
             newDict["l_subgroup_ids"] =  [subgroups[k]["subgroup_id"] for k in usersLikeSubGs if k in subgroups]
-            usersLikeGs = [z.split("_")[0] for z in (users[i["user_id"]]["interests"].split(',')) if len(z.split("_")) > 1]
+            usersLikeGs = [z.split("_")[0] for z in (users[i]["interests"].split(',')) if len(z.split("_")) > 1]
             newDict["l_group_ids"] =[]
             for j in usersLikeGs:
                 if j in groups:

@@ -140,7 +140,6 @@ def main(args):
     model.fit(user_course_matrix)
     logging.debug("trained model '%s' in %0.2fs", args.model, time.time() - start)
 
-
     # predict only users in test file
     to_generate = []
     with open(args.testfile, encoding='utf-8') as f:
@@ -175,6 +174,11 @@ def parse_args() -> Namespace:
         default="similar-artists.tsv",
         dest="outputfile",
         help="output file name",
+    )
+    parser.add_argument(
+        "--savemodeldir",
+        type=str,
+        help="save model dir",
     )
     parser.add_argument(
         "--userfile",
@@ -257,7 +261,6 @@ def parse_args() -> Namespace:
         "--filter_already_liked_items",
         action='store_true',
         help="When true, don't return items present in the training set that were rated by the specified user.",
-
     )
     parser.add_argument(
         "--recalculate_user",

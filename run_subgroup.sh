@@ -3,7 +3,7 @@ python train_with_implicit.py \
 --coursefile ./hahow/data/subgroups.csv \
 --coursekey subgroup_id \
 --outputkey subgroup \
---bkey b_subgroup_ids_of_course \
+--bkey b_subgroup_ids \
 --lkey l_subgroup_ids \
 --testfile ./hahow/data/test_seen_group.csv \
 --trainfile ./hahow/preprocessed/PosAndNegScore.json \

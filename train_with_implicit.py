@@ -59,7 +59,7 @@ def get_model(args):
         params = {"dtype": np.float32, "use_gpu": True, "factors": args.factors, "regularization": args.regularization,"alpha": args.alpha, 
         "iterations": args.iterations, "calculate_training_loss": args.calculate_training_loss, "random_state": args.random_state}
     elif model_name == "bm25":
-        params = {"K1": args.K1, "B": args.B}
+        params = {"K1": args.K1, "B": args.B, "K": args.K}
     elif model_name == "bpr":
         params = {"dtype": np.float32, "factors": args.factors, "iterations": args.iterations, "regularization": args.regularization, 
             "random_state": args.random_state, "learning_rate": args.learning_rate}
@@ -103,6 +103,7 @@ def main(args):
     m_rows = []
     m_cols = []
     m_data = []
+
     for data in dataset:
         if(args.b_weight > 0):
             for b_course_id in data[args.bkey]:
@@ -120,7 +121,7 @@ def main(args):
                 m_data.append(args.l_weight)
     # course_user_matrix = csr_matrix((np.array(m_data), (np.array(m_rows), np.array(m_cols))), shape=(len(cid_to_raw_course_id), len(uid_to_raw_user_id)))
     user_course_matrix = csr_matrix((np.array(m_data), (np.array(m_rows), np.array(m_cols))), shape=(len(uid_to_raw_user_id), len(cid_to_raw_course_id)))
-
+    # print(user_course_matrix[raw_user_id_to_uid['5f1dc5a3afdc0537b5de8979']])
     # create a model from the input data
     model = get_model(args)
 
@@ -250,6 +251,11 @@ def parse_args() -> Namespace:
         "--K1",
         type=float,
         help="K1 for bm25",
+    )
+    parser.add_argument(
+        "--K",
+        type=float,
+        help="K for bm25",
     )
     parser.add_argument(
         "--B",

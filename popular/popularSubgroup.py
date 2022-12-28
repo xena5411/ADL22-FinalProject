@@ -66,10 +66,11 @@ def main(args):
     with codecs.open(args.predFilePath, "w", "utf8") as o:
         o.write(f'user_id,course_id\n')
         for u_id in unseenU:
-            popCourse = []
+            popCourse = popCourseRank[:5]
+            # popCourse = []
             for sg_id in user_l_subG[u_id]:
                 popCourse += subGSorted[sg_id][:2]
-                if len(popCourse) >= 9:
+                if len(popCourse) >= 14:
                     break
 
             popCourse = list(set(popCourse))

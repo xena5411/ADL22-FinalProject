@@ -97,43 +97,35 @@ def main(args):
     for data in dataset:
         data['user_id'] = raw_user_id_to_uid[data['user_id']]
         data[args.bkey] = [raw_course_id_to_cid[raw_b_course_id] for raw_b_course_id in data[args.bkey]]
-        data[args.lkey] = [raw_course_id_to_cid[raw_l_subgroup_to_all_course_id] for raw_l_subgroup_to_all_course_id in data[args.lkey]]
 
-    popCourseRank = [] # [c1, c2, ...]
-    with open(args.rankFilePath, encoding='utf-8') as f:
-        csvReader = csv.reader(f)
-        for i in csvReader:
-            popCourseRank.append(i[0])
+        data[args.lkey] = [raw_course_id_to_cid[raw_l_subgroup_to_all_course_id] for raw_l_subgroup_to_all_course_id in data[args.lkey]]
 
     # construct a sparse matrix
     m_rows = []
     m_cols = []
     m_data = []
+
     for data in dataset:
         if(args.b_weight > 0):
             for b_course_id in data[args.bkey]:
+                # m_cols.append(data['user_id'])
+                # m_rows.append(b_course_id)
                 m_rows.append(data['user_id'])
                 m_cols.append(b_course_id)
                 m_data.append(args.b_weight)
         if(args.l_weight > 0):
+            
             for l_course_id in data[args.lkey]:
+                if int(course[l_course_id]['count']) < 100:
+                    continue
+                # m_cols.append(data['user_id'])
+                # m_rows.append(l_course_id)
                 m_rows.append(data['user_id'])
                 m_cols.append(l_course_id)
-                m_data.append(args.l_weight)    
-
-        p_weight = args.p_weight
-        for popC_id in popCourseRank:
-            m_rows.append(data['user_id'])
-            m_cols.append(raw_course_id_to_cid[popC_id])
-            m_data.append(p_weight)
-            p_weight -= 1
-            if p_weight <= 0:
-                break
-        
-
+                m_data.append(args.l_weight)
     # course_user_matrix = csr_matrix((np.array(m_data), (np.array(m_rows), np.array(m_cols))), shape=(len(cid_to_raw_course_id), len(uid_to_raw_user_id)))
     user_course_matrix = csr_matrix((np.array(m_data), (np.array(m_rows), np.array(m_cols))), shape=(len(uid_to_raw_user_id), len(cid_to_raw_course_id)))
-
+    # print(user_course_matrix[raw_user_id_to_uid['5f1dc5a3afdc0537b5de8979']])
     # create a model from the input data
     model = get_model(args)
 
@@ -238,11 +230,6 @@ def parse_args() -> Namespace:
         help="train file name",
     )
     parser.add_argument(
-        "--rankFilePath",
-        type=str,
-        help="rank file path",
-    )
-    parser.add_argument(
         "--model",
         type=str,
         default="als",
@@ -324,11 +311,6 @@ def parse_args() -> Namespace:
         "--l_weight",
         type=float,
         help="The weight to give to like courses",
-    )
-    parser.add_argument(
-        "--p_weight",
-        type=float,
-        help="The weight to give to pop courses",
     )
     parser.add_argument(
         "--thresh",

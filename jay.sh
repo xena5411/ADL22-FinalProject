@@ -1,9 +1,9 @@
-predFilePath="./outputs/xena/pred_bm25_unseen_course_addPopCourse.csv"
+predFilePath="./outputs/pred_als_unseen_course_addPopCourse.csv"
 valFile="./hahow/data/val_unseen.csv"
 
 python train_unseen_course.py \
 --userfile ./hahow/data/users.csv \
---coursefile ./hahow/data/courses.csv \
+--coursefile ./hahow/preprocessed/modcourse.csv \
 --coursekey course_id \
 --outputkey course_id \
 --bkey b_course_ids \
@@ -18,15 +18,15 @@ python train_unseen_course.py \
 --alpha 1.0 \
 --iterations 300 \
 --learning_rate 0.02 \
---K1 120 \
 --K 20 \
+--K1 1.20 \
 --B 0.1 \
 --calculate_training_loss \
 --random_state 42 \
 --N 50 \
---b_weight 1000.0 \
---l_weight 300 \
---p_weight 500
+--b_weight 800.0 \
+--l_weight 700 \
+--p_weight 700
 
 python matrix.py \
 --predFilePath $predFilePath \

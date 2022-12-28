@@ -21,7 +21,8 @@ def main(args):
                 allCourse[b_c_id] = 1
 
     sortedCourses = dict(sorted(allCourse.items(), key=operator.itemgetter(1), reverse=True))
-
+    print(sortedCourses)
+    
     populerOutput = []
     for k in sortedCourses:
         if len(populerOutput) < 50:

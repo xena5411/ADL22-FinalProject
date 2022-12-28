@@ -29,8 +29,6 @@ def main(args):
         else:
             break
 
-    print(populerOutput)
-
     unseenU = []
     with open(args.valFilePath, encoding='utf-8') as f:
         unseenUsers = csv.DictReader(f)

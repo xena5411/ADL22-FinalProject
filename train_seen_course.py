@@ -105,16 +105,20 @@ def main(args):
         for i in csvReader:
             popCourseRank.append(i[0])
 
+    user_bought = {}
     # construct a sparse matrix
     m_rows = []
     m_cols = []
     m_data = []
     for data in dataset:
         if(args.b_weight > 0):
+            bought_items = []
             for b_course_id in data[args.bkey]:
                 m_rows.append(data['user_id'])
                 m_cols.append(b_course_id)
                 m_data.append(args.b_weight)
+                bought_items.append(b_course_id)
+            user_bought[data['user_id']] = bought_items
         if(args.l_weight > 0):
             for l_course_id in data[args.lkey]:
                 m_rows.append(data['user_id'])
@@ -130,7 +134,7 @@ def main(args):
             if p_weight <= 0:
                 break
         
-
+    del dataset
     # course_user_matrix = csr_matrix((np.array(m_data), (np.array(m_rows), np.array(m_cols))), shape=(len(cid_to_raw_course_id), len(uid_to_raw_user_id)))
     user_course_matrix = csr_matrix((np.array(m_data), (np.array(m_rows), np.array(m_cols))), shape=(len(uid_to_raw_user_id), len(cid_to_raw_course_id)))
 
@@ -170,7 +174,7 @@ def main(args):
             o.write(f'user_id,{args.outputkey}\n')
             for idx in to_generate:
                 ids, scores = model.recommend(
-                    idx, user_course_matrix[idx], filter_already_liked_items=args.filter_already_liked_items, 
+                    idx, user_course_matrix[idx], filter_already_liked_items=args.filter_already_liked_items, filter_items=user_bought[idx],
                     N=args.N, recalculate_user=args.recalculate_user,
                 )
                 user_id = uid_to_raw_user_id[idx]

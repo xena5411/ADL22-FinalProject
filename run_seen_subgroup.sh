@@ -1,4 +1,4 @@
-predFilePath="./outputs/lmf/pred_val_seen_subgroup_f64_i100_r06_lr1_b10_l2.csv"
+predFilePath="./outputs/seen_subgroup.csv"
 valFile="./hahow/data/val_seen_group.csv"
 testFile="./hahow/data/val_seen_group.csv"
 
@@ -13,19 +13,15 @@ CUDA_VISIBLE_DEVICES=3 python train_with_implicit.py \
 --trainfile ./hahow/preprocessed/PosAndNegScore.json \
 --calculate_training_loss \
 --output $predFilePath \
---model lmf \
---factors 64 \
---iterations 100 \
---regularization 0.6 \
---learning_rate 1 \
+--model bm25 \
+--K 20 \
+--K1 100 \
+--B 0.1 \
 --b_weight 10 \
 --l_weight 2 \
 --random_state 42 \
 --N 50 \
 
-# --K 20 \
-# --K1 100 \
-# --B 0.1 \
 # --alpha 1.0 \
 # --thresh 0.1 \
 # --filter_already_liked_items \

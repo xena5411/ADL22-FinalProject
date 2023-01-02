@@ -1,9 +1,9 @@
-predFilePath="./outputs/pred_als_unseen_course_addPopCourse.csv"
-valFile="./hahow/data/val_unseen.csv"
+predFilePath="./outputs/seen_course.csv"
+valFile="./hahow/data/val_seen.csv"
 
-python train_unseen_course.py \
+python train_seen_course.py \
 --userfile ./hahow/data/users.csv \
---coursefile ./hahow/preprocessed/modcourse.csv \
+--coursefile ./hahow/data/courses.csv \
 --coursekey course_id \
 --outputkey course_id \
 --bkey b_course_ids \
@@ -13,19 +13,19 @@ python train_unseen_course.py \
 --rankFilePath ./popular/popularCourseRank.csv \
 --model bm25 \
 --output $predFilePath \
---factors 32 \
---regularization 0.05 \
+--factors 5 \
+--regularization 0.01 \
 --alpha 1.0 \
---iterations 300 \
---learning_rate 0.02 \
---K 20 \
---K1 1.20 \
+--K 60 \
+--K1 1.2 \
 --B 0.1 \
+--iterations 400 \
+--learning_rate 0.02 \
 --calculate_training_loss \
 --random_state 42 \
 --N 50 \
---b_weight 800.0 \
---l_weight 700 \
+--b_weight 1000.0 \
+--l_weight 200 \
 --p_weight 700
 
 python matrix.py \

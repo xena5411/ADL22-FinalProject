@@ -7,7 +7,7 @@ Below is how the four task train and test, you can edit the run.sh to modify the
 bash run_seen_course.sh 
 ```
 
-## Seen Course 
+## Seen Unseen Course 
 ```
 bash run_unseen_course.sh 
 ```
@@ -17,7 +17,7 @@ bash run_unseen_course.sh
 bash run_seen_subgroup.sh 
 ```
 
-## Seen Subgroup ( Topic ) 
+## Seen Unseen Subgroup ( Topic ) 
 ```
 bash run_unseen_subgroup.sh 
 ```
